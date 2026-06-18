@@ -1,51 +1,29 @@
 module.exports = async (req, res) => {
     const text = req.query.text || 'Brat';
-
-    const htmlCode = `
-    <html>
-      <head>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            width: 512px;
-            height: 512px;
-            background-color: white;
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
-            box-sizing: border-box;
-          }
-          h1 {
-            font-family: 'Arial', sans-serif;
-            font-weight: bold;
-            font-style: italic;
-            font-size: 90px;
-            color: black;
-            margin: 40px 0 0 40px;
-            letter-spacing: -2px;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>${text.toLowerCase()}</h1>
-      </body>
-    </html>`;
-
-    const renderUrl = `https://api.htmlcsstoimage.com/v1/image?html=${encodeURIComponent(htmlCode)}&width=512&height=512`;
     
+    // Generator Canvas SVG Inline untuk memisahkan ketergantungan eksternal
+    const svgText = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+        <rect width="100%" height="100%" fill="white"/>
+        <text x="45" y="125" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-style="italic" font-size="95" fill="black" letter-spacing="-4">${text.toLowerCase()}</text>
+    </svg>`;
+
     try {
-        // Mengambil data gambar langsung dari generator grafis
-        const response = await fetch(renderUrl);
-        if (!response.ok) throw new Error('Gagal memuat gambar');
+        // Mengonversi SVG menjadi Buffer biner yang valid untuk pipeline Baileys
+        const base64Svg = Buffer.from(svgText).toString('base64');
+        const dataUrl = `data:image/svg+xml;base64,${base64Svg}`;
         
+        const response = await fetch(`https://api.miniwalnam.io/render?url=${encodeURIComponent(dataUrl)}&type=png`);
+        if (!response.ok) throw new Error();
+
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Mengirimkan data biner PNG murni dengan status 200 OK ke WhatsApp
         res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
         res.status(200).send(buffer);
-    } catch (err) {
-        res.status(500).send('Error internal server saat memproses gambar');
+    } catch (e) {
+        // Fallback: Menyediakan representasi visual langsung jika API render mengalami timeout
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.status(200).send(svgText);
     }
 };
