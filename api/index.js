@@ -1,12 +1,41 @@
 module.exports = async (req, res) => {
     const text = req.query.text || 'Brat';
-    
-    // Membuat gambar format SVG secara instan tanpa modul tambahan
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-        <rect width="512" height="512" fill="#FFFFFF"/>
-        <text x="30" y="100" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="italic" font-size="85" fill="#000000">${text.toLowerCase()}</text>
-    </svg>`;
 
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.status(200).send(svg);
+    // Membuat halaman HTML instan bergaya stiker Brat asli
+    const htmlCode = `
+    <html>
+      <head>
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+            width: 512px;
+            height: 512px;
+            background-color: white;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            box-sizing: border-box;
+          }
+          h1 {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-style: italic;
+            font-size: 90px;
+            color: black;
+            margin: 40px 0 0 40px;
+            letter-spacing: -2px;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>${text.toLowerCase()}</h1>
+      </body>
+    </html>`;
+
+    // Mengalihkan output ke API htmlcsstoimage gratis untuk diubah menjadi PNG asli secara realtime
+    const renderUrl = `https://api.htmlcsstoimage.com/v1/image?html=${encodeURIComponent(htmlCode)}&width=512&height=512`;
+    
+    // Alihkan (Redirect) bot langsung ke gambar PNG asli hasil render
+    res.redirect(302, renderUrl);
 };
