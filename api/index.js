@@ -1,7 +1,6 @@
 module.exports = async (req, res) => {
     const text = req.query.text || 'Brat';
 
-    // Membuat halaman HTML instan bergaya stiker Brat asli
     const htmlCode = `
     <html>
       <head>
@@ -33,9 +32,20 @@ module.exports = async (req, res) => {
       </body>
     </html>`;
 
-    // Mengalihkan output ke API htmlcsstoimage gratis untuk diubah menjadi PNG asli secara realtime
     const renderUrl = `https://api.htmlcsstoimage.com/v1/image?html=${encodeURIComponent(htmlCode)}&width=512&height=512`;
     
-    // Alihkan (Redirect) bot langsung ke gambar PNG asli hasil render
-    res.redirect(302, renderUrl);
+    try {
+        // Mengambil data gambar langsung dari generator grafis
+        const response = await fetch(renderUrl);
+        if (!response.ok) throw new Error('Gagal memuat gambar');
+        
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Mengirimkan data biner PNG murni dengan status 200 OK ke WhatsApp
+        res.setHeader('Content-Type', 'image/png');
+        res.status(200).send(buffer);
+    } catch (err) {
+        res.status(500).send('Error internal server saat memproses gambar');
+    }
 };
