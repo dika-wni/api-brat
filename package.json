@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "api/index.js",
   "dependencies": {
-    "express": "^4.19.2",
-    "sharp": "^0.33.2"
+    "canvas": "^2.11.2"
   }
 }
