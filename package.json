@@ -1,13 +1,9 @@
 {
-  "name": "api-brat-kamu",
+  "name": "api-brat",
   "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "main": "api/index.js",
   "dependencies": {
     "express": "^4.19.2",
     "sharp": "^0.33.2"
   }
 }
-
